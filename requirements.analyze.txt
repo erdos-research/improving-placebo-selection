@@ -1,0 +1,4 @@
+multiprocess
+numpy
+scipy
+vaderSentiment
