@@ -1,4 +1,0 @@
-multiprocess
-numpy
-scipy
-vaderSentiment

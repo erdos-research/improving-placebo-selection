@@ -1,4 +1,0 @@
-kaleido
-numpy
-plotly
-Pillow

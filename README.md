@@ -1,7 +1,6 @@
 # GPT-2 Generates Biased Texts
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 [![OmniOpen Platinum](https://github.com/concurrent-studio/OmniOpen/raw/master/badges/platinum.svg)](https://concurrent.studio/omniopen#platinum)
-[![Open In Collab](https://colab.research.google.com/assets/colab-badge.svg)](TODO)  
 Code accompanying the paper [GPT-2 Generates Biased Texts]() by
 [Charles Crabtree](https://charlescrabtree.com) and [William W. Marx](https://marx.design).
 
