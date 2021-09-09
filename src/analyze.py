@@ -15,14 +15,16 @@ from typing import Iterable, List, Tuple, Union
 try:
 	import slant
 	import numpy as np
+	from multiprocess import Pool, cpu_count
 	from scipy.stats import gaussian_kde
+	from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 except ModuleNotFoundError:
 	print("\033[31mMissing necessary requirements.\033[0m")
 	# Ask user if they want to install missing packages and if so, do it
-	if input("Install `slant`, `numpy`, and `scipy` now? [Y/n]: ").strip().lower() != "n":
-		call("python3 -m pip install -U -r requirements.analyze.txt".split(" "))
+	if input("Install `slant`, `numpy`, `scipy`, and `vaderSentiment` now? [Y/n]: ").strip().lower() != "n":
+		call("python3 -m pip install -U -r requirements.txt".split(" "))
 	else:
-		raise ModuleNotFoundError("Must install `slant`, `numpy`, and `scipy`")
+		raise ModuleNotFoundError("Must install `slant`, `numpy`, `scipy`, and `vaderSentiment`")
 
 ################################################################################
 # Load CSV file containing GPT-2-generated placebos
@@ -42,8 +44,20 @@ pdict = {" ".join(row[:2]): row[2:] for row in placebos}  # Build placebo dictio
 ################################################################################
 # Get placebo sentiments
 ################################################################################
-# Get placebo sentiments
-gpt2_sentiments = [[*row[:2], *slant.sentiment(row[2:]).compound] for row in placebos]
+vader = SentimentIntensityAnalyzer()
+get_sentiment = lambda r: [*r[:2], *map(lambda x: vader.polarity_scores(x)["compound"], r[2:])]
+
+
+def get_placebo_sentiments(row):
+	"""Transform row from placebo CSV file into row of corrensponding sentiments."""
+	sentiments = map(lambda x: vader.polarity_scores(x)["compound"], row[2:])
+	return [*row[:2], *sentiments]
+
+
+# Get placebo sentiments in parallel
+p = Pool(cpu_count())
+gpt2_sentiments = p.map(get_sentiment, placebos)
+p.close()
 
 # Write sentiments to file
 with open("../results/GPT2_placebo_sentiments.csv", "w") as f:

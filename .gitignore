@@ -1,2 +1,6 @@
 .DS_Store
-owt/openwebtext
+data/gpt2_generated_placebos.7z
+data/gpt2_generated_placebos/
+data/openwebtext_sentiments.7z
+data/openwebtext_sentiments.csv
+results/

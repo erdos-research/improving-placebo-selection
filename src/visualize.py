@@ -146,8 +146,7 @@ def ridgeplot(identifiers: Iterable[str],
 		else:
 			plot_title = f"<b>{title}</b> Sentiment Distribution"
 			filepath = f"../results/images/{title.replace(' ', '_').replace('/', '_')}_Sentiment_Distribution.jpg"
-		fig.update_layout(title=plot_title,
-		                  showlegend=False,
+		fig.update_layout(showlegend=False,
 		                  width=width,
 		                  height=height,
 		                  margin=dict(pad=20),
@@ -180,6 +179,10 @@ def ridgeplot(identifiers: Iterable[str],
 
 		# Save image
 		fig.write_image(filepath, scale=3)
+		im = Image.open(filepath)
+		Path(filepath).unlink()
+		width, height = im.size
+		im.crop((0, 200, width, height)).save(filepath)
 
 
 ################################################################################
@@ -194,12 +197,12 @@ def model_bias(identifiers: Iterable[str],
                n_bins: int = 40) -> None:
 	"""Plot scatter plot and histogram of model bias"""
 	binsize = 2 / n_bins
-	final_figs = []  # Final figures to join together with Pillow
+	# final_figs = []  # Final figures to join together with Pillow
 
 	data = sorted(zip(identifiers, owt_sentiments, gpt2_sentiments), key=lambda x: x[0].lower())
 	for id_, x, y in data:
 		if len(x) < len(y):
-			print(f"Warning: less OpenWebText samples than GPT-2 samples for {id_}, skipping")
+			# print(f"Warning: less OpenWebText samples than GPT-2 samples for {id_}, skipping")
 			continue
 		elif len(x) > len(y):
 			x = np.random.choice(x, len(y))
@@ -211,9 +214,10 @@ def model_bias(identifiers: Iterable[str],
 		# Pearson correlation coefficient
 		rho = round(np.corrcoef(x, y)[0][1], 3)
 		# Mean squared error
-		mse = round(np.sum([(j - i)**2 for i, j in zip(x, y)]) / len(x), 3)
+		mse = np.square(np.subtract(x, y)).mean()
 		# Trapezoidal sum of area between points and f(x) = x
 		mbt = sum([(x[i] - x[i - 1]) * (y[i] + y[i - 1] - x[i - 1] - x[i]) / 4 for i in range(len(x))])
+		print(f"{id_.ljust(20)}: {round(rho, 3)} {round(mse, 3)} {mbt:.2%}")
 
 		fig = go.Figure()
 		fig.add_trace(go.Scatter(x=[0, 0], y=[-1, 1], mode="lines", line=dict(color="#e9e9e9")))
@@ -248,14 +252,14 @@ def model_bias(identifiers: Iterable[str],
 		                 xaxis="x2",
 		                 name="Generated"))
 
-		fig.add_trace(
-		    go.Scatter(x=[-1, -1],
-		               y=[1, 0.89],
-		               mode="text",
-		               name="Pearson's Correlation Coefficient",
-		               text=[f"ρ = {rho}, MSE = {mse}", f"MBT = {mbt:.2%}"],
-		               textposition="bottom right",
-		               textfont=dict(family="Verdana", size=14, color="black")))
+		# fig.add_trace(
+		#     go.Scatter(x=[-1, -1],
+		#                y=[1, 0.89],
+		#                mode="text",
+		#                name="Pearson's Correlation Coefficient",
+		#                text=[f"ρ = {rho}, MSE = {mse}", f"MBT = {mbt:.2%}"],
+		#                textposition="bottom right",
+		#                textfont=dict(family="Verdana", size=14, color="black")))
 
 		asize = 0.15
 		buffr = 0.015
@@ -278,7 +282,7 @@ def model_bias(identifiers: Iterable[str],
 		                                        standoff=14)),
 		                  xaxis2=dict(domain=[1 - asize + buffr, 1], showgrid=False, color="#fff"),
 		                  yaxis2=dict(domain=[1 - asize + buffr, 1], showgrid=False, color="#fff"),
-		                  title=f"<b>{id_}</b> Model Bias",
+		                  # title=f"<b>{id_}</b> Model Bias",
 		                  template="plotly_white",
 		                  margin=dict(pad=15),
 		                  width=600,
@@ -297,16 +301,18 @@ def model_bias(identifiers: Iterable[str],
 		plotimg = Image.new("RGB", (1700, 1750), (255, 255, 255))
 		plotimg.paste(im.crop((0, 0, 1600, 200)), (50, 0))
 		plotimg.paste(im.crop((0, 250, 1600, 1800)), (50, 200))
-		plotimg.save(filepath)
-		final_figs.append(plotimg)
+		outimg = Image.new("RGB", (1650, 1650), (255, 255, 255))
+		outimg.paste(plotimg.crop((0, 200, 1650, 1750)), (0, 0))
+		outimg.save(filepath)
+		# final_figs.append(plotimg)
 
-	plot = Image.new("RGB", (1700 * n_cols, 1750 * n_rows), (255, 255, 255))
-	for i in range(n_cols):
-		for j in range(n_rows):
-			fig_idx = j * n_cols + i
-			if fig_idx < len(final_figs):
-				plot.paste(final_figs[fig_idx], (1700 * i, 1750 * j))
-	plot.save(f"../results/images/{title.replace(' ', '_').replace('/', '_')}_Model_Bias.jpg")
+	# plot = Image.new("RGB", (1700 * n_cols, 1750 * n_rows), (255, 255, 255))
+	# for i in range(n_cols):
+	# 	for j in range(n_rows):
+	# 		fig_idx = j * n_cols + i
+	# 		if fig_idx < len(final_figs):
+	# 			plot.paste(final_figs[fig_idx], (1700 * i, 1750 * j))
+	# plot.save(f"../results/images/{title.replace(' ', '_').replace('/', '_')}_Model_Bias.jpg")
 
 
 ################################################################################
@@ -331,8 +337,7 @@ def chloropleth(state_abbreviations: list, state_medians: list) -> None:
 	                      tick0=-1,
 	                      dtick=0.25,
 	                      tickprefix="  ")),
-	    layout=dict(title="<b>Geographic Sentiment</b> by State Demonym",
-	                showlegend=False,
+	    layout=dict(showlegend=False,
 	                template="plotly_white",
 	                font=dict(family="Verdana", color="black"),
 	                title_font=dict(size=20),
@@ -343,7 +348,11 @@ def chloropleth(state_abbreviations: list, state_medians: list) -> None:
 	                width=1275,
 	                height=900))
 
-	fig.write_image("../results/images/Geographic_Sentiment.jpg", scale=2)
+	filepath = "../results/images/Geographic_Sentiment.jpg"
+	fig.write_image(filepath, scale=2)
+	im = Image.open(filepath)
+	Path(filepath).unlink()
+	im.crop((300, 150, 2550, 1800)).save(filepath)
 
 
 ################################################################################
@@ -408,7 +417,7 @@ model_bias(pi_ids, pi_owt, pi_gpt2, "Political Ideology", n_rows=1, n_cols=3)
 stdem_ids = group_identifiers["State or Territory Demonym"]
 stdem_gpt2 = get_gpt2_sentiments(stdem_ids)
 stdem_owt = get_owt_sentiments(stdem_ids)
-ridgeplot(stdem_ids, stdem_gpt2, "State or Territory Demonym", 1275, 720, 1.8, n_cols=3)
+ridgeplot(stdem_ids, stdem_gpt2, "State or Territory Demonym", 1275, 1800, 1.8, n_cols=2)
 
 # AAPI name ridge plot
 aapi_ids = group_identifiers["Name"]["AAPI"]
