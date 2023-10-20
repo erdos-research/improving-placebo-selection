@@ -1,10 +1,10 @@
-# GPT-2 Generates Biased Texts
+# Improving Placebo Selection in Survey Experiments
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0%201.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 [![OmniOpen Platinum](https://github.com/concurrent-studio/OmniOpen/raw/master/badges/platinum.svg)](https://concurrent.studio/omniopen#platinum)  
-Code accompanying the paper [GPT-2 Generates Biased Texts]() by
-[Charles Crabtree](https://charlescrabtree.com) and [William W. Marx](https://marx.design).
+Code accompanying the paper [Improving Placebo Selection in Survey Experiments]() by
+[Charles Crabtree](https://charlescrabtree.com) and [William W. Marx](https://marx.sh).
 
-*ABSTRACT GOES HERE*
+How should researchers create placebo conditions in survey experiments? Porter and Velez (2021) recommend that researchers use automated processes to construct a large corpus of placebo conditions, which are then randomly assigned to participants in the placebo group during survey implementation. Based on our empirical work, we suggest that researchers use caution if they employ the tool recommended for placebo construction, OpenAI’s semi-supervised language model GPT-2. We conduct the most extensive assessment of GPT-2’s biases by measuring the sentiment of 1,083,750 potential placebos generated across 4,335 unique seed phrases. We show that the polarities of placebos vary tremendously across seed phrases, depending on the race/ethnicity, gender, sexual and religious orientation, political affiliation, political ideology, or state or territory demonym mentioned in them. We also show considerable heterogeneity in the substance of placebos across seed phrases. Comparing our results to a similar analysis of the text corpus used to train GPT-2, we find that the language model not only learns to reproduce biases in source material but also magnifies them. To deal with these issues, we provide a tool to mitigate the effects of these biases and provide best practice recommendations for automatic placebo generation.
 
 ## Install
 To install all necessary requirements, run `bash install.sh`. We recommend using Docker, but native
