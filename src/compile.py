@@ -13,8 +13,11 @@ from glob import glob
 from pathlib import Path
 from itertools import chain
 
+# Get current working directory
+cwd = Path(__file__).parent.resolve()
+
 # Load group indentifiers from json file
-with open("../data/group_identifiers.json", "r") as f:
+with open((cwd / "../data/group_identifiers.json").resolve(), "r") as f:
 	group_ids = json.load(f)
 
 # Separate demographic identifiers from names
@@ -66,14 +69,18 @@ def split_seed_phrase(seed_phrase):
 	return "", ""
 
 
+################################################################################
+# GPT-2 Generated Placebos
+################################################################################
+
 # Check if data/gpt2_generated_placebos direcroty exists before proceding
-if Path("../data/gpt2_generated_placebos").is_dir():
+if (cwd / "../data/gpt2_generated_placebos").resolve().is_dir():
 	seed_re = re.compile(r"^Today,_(an?_)?")  # Regex to get seed phrase
 	splitter = re.compile(r"={20}")  # Regex to split gpt-2-simple
 
 	# Parse through raw data files
 	csv_rows = []
-	for fp in glob("../data/gpt2_generated_placebos/*.txt"):
+	for fp in glob(str((cwd / "../data/gpt2_generated_placebos/*.txt").resolve())):
 		# Get seed phrase from filename
 		seed_phrase = seed_re.sub("", Path(fp).stem).replace("_", " ")
 		id0, id1 = split_seed_phrase(seed_phrase)  # Get identifiers from seed phrase
@@ -82,17 +89,49 @@ if Path("../data/gpt2_generated_placebos").is_dir():
 			placebos = filter(None, map(str.strip, splitter.split(f.read())))
 			csv_rows.append([id0, id1, *placebos])
 
-	if not Path("../results").is_dir():
-		Path("../results").mkdir()  # Make results directory if necessary
+	(cwd / "../results").resolve().mkdir(parents=True,
+	                                     exist_ok=True)  # Make results directory if necessary
 
 	# Write placebos to CSV file
-	with open("../results/GPT2_generated_placebos.csv", "w") as f:
+	with open((cwd / "../results/GPT2_generated_placebos.csv").resolve(), "w") as f:
 		csvw = csv.writer(f)
 		csvw.writerow(["Identifier0", "Identifier1", *[f"Placebo{i}" for i in range(250)]])
 		csvw.writerows(sorted(csv_rows, key=lambda x: " ".join(x[:2]).lower()))
 else:
 	# If no raw data, instruct user on what to do
 	print("\033[31mDirectory '../data/gpt2_generated_placebos' not found.\033[0m")
+	print(
+	    "Either decompress results (`make decompress-data`) or generate new results (`make placebos`)."
+	)
+
+################################################################################
+# GPT-3.5 Turbo Generated Placebos
+################################################################################
+
+# Check if data/gpt3_5_generated_placebos direcroty exists before proceding
+if (cwd / "../data/gpt3_5_generated_placebos").resolve().is_dir():
+	seed_re = re.compile(r"^Today,_(an?_)?")  # Regex to get seed phrase
+	splitter = re.compile(r"={20}")  # Regex to split gpt-2-simple
+
+	# Parse through raw data files
+	csv_rows = []
+	for fp in glob(str((cwd / "../data/gpt3_5_generated_placebos/*.txt").resolve())):
+		# Get seed phrase from filename
+		seed_phrase = seed_re.sub("", Path(fp).stem).replace("_", " ")
+		id0, id1 = split_seed_phrase(seed_phrase)  # Get identifiers from seed phrase
+		with open(fp, "r") as f:
+			# Split text into placebos
+			placebos = filter(None, map(str.strip, splitter.split(f.read())))
+			csv_rows.append([id0, id1, *placebos])
+
+	# Write placebos to CSV file
+	with open((cwd / "../results/GPT3_5_generated_placebos.csv").resolve(), "w") as f:
+		csvw = csv.writer(f)
+		csvw.writerow(["Identifier0", "Identifier1", *[f"Placebo{i}" for i in range(250)]])
+		csvw.writerows(sorted(csv_rows, key=lambda x: " ".join(x[:2]).lower()))
+else:
+	# If no raw data, instruct user on what to do
+	print("\033[31mDirectory '../data/gpt3_5_generated_placebos' not found.\033[0m")
 	print(
 	    "Either decompress results (`make decompress-data`) or generate new results (`make placebos`)."
 	)
