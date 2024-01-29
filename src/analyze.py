@@ -12,6 +12,9 @@ from pathlib import Path
 from subprocess import call
 from typing import Iterable, List, Tuple, Union
 
+# Get current working directory
+cwd = Path(__file__).parent.resolve()
+
 try:
 	import slant
 	import numpy as np
@@ -21,14 +24,12 @@ try:
 except ModuleNotFoundError:
 	print("\033[31mMissing necessary requirements.\033[0m")
 	# Ask user if they want to install missing packages and if so, do it
+	analyze_requirements_fp = (cwd / "requirements.generate.txt").resolve()
 	if input("Install `slant`, `numpy`, `multiprocess`, `scipy`, and `vaderSentiment` now? [Y/n]: "
 	        ).strip().lower() != "n":
-		call("python3 -m pip install -U -r requirements.analyze.txt".split(" "))
+		call(f"python3 -m pip install -U -r {analyze_requirements_fp}".split(" "))
 	else:
 		raise ModuleNotFoundError("Must install `slant`, `numpy`, `scipy`, and `vaderSentiment`")
-
-# Get current working directory
-cwd = Path(__file__).parent.resolve()
 
 ################################################################################
 # Load CSV file containing GPT-2-generated placebos
@@ -44,7 +45,7 @@ if not gpt2_placebo_csv.exists():
 with open(gpt2_placebo_csv, "r") as f:
 	gpt2_placebos = list(csv.reader(f))[1:]  # Load GPT-2 genearted placebos
 
-gpt2_pdict = {" ".join(row[:2]): row[2:] for row in placebos}  # Build placebo dictionary
+gpt2_pdict = {" ".join(row[:2]): row[2:] for row in gpt2_placebos}  # Build placebo dictionary
 
 ################################################################################
 # Load CSV file containing GPT-3.5 Turbo-generated placebos
@@ -60,7 +61,7 @@ if not gpt3_5_placebo_csv.exists():
 with open(gpt3_5_placebo_csv, "r") as f:
 	gpt3_5_placebos = list(csv.reader(f))[1:]  # Load GPT-3.5 Turbo genearted placebos
 
-gpt3_5_pdict = {" ".join(row[:2]): row[2:] for row in placebos}  # Build placebo dictionary
+gpt3_5_pdict = {" ".join(row[:2]): row[2:] for row in gpt3_5_placebos}  # Build placebo dictionary
 
 ################################################################################
 # Get placebo sentiments
@@ -136,7 +137,7 @@ class MultimodalStats:
 		return np.sqrt(sum([(x - reference)**2 for x in series]) / len(series))
 
 
-def get_descriptive_stats(row: Iterable[Union[str, float]]) -> List[Union[str, float]]:
+def get_descriptive_stats(row: Iterable[Union[str, float]], pdict: dict) -> List[Union[str, float]]:
 	"""Get descriptive statistics for a given row."""
 	seed_phrase = " ".join(row[:2])
 	sentiments = np.array(sorted(row[2:]))
@@ -167,8 +168,8 @@ def get_descriptive_stats(row: Iterable[Union[str, float]]) -> List[Union[str, f
 
 
 # Get descriptive statistics
-gpt2_analysis = list(map(get_descriptive_stats, gpt2_sentiments))
-gpt3_5_analysis = list(map(get_descriptive_stats, gpt3_5_sentiments))
+gpt2_analysis = [get_descriptive_stats(s, gpt2_pdict) for s in gpt2_sentiments]
+gpt3_5_analysis = [get_descriptive_stats(s, gpt3_5_pdict) for s in gpt3_5_sentiments]
 
 ################################################################################
 # Write analysis file

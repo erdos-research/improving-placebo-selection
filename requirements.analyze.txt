@@ -1,0 +1,5 @@
+slant
+numpy
+multiprocess
+scipy
+vaderSentiment

@@ -3,6 +3,8 @@
 decompress:
 	@cat data/gpt2_generated_placebos0* > data/gpt2_generated_placebos.7z && \
 		7z x data/gpt2_generated_placebos.7z -odata
+	@cat data/gpt3_5_generated_placebos0* > data/gpt3_5_generated_placebos.7z && \
+		7z x data/gpt3_5_generated_placebos.7z -odata
 	@cat data/openwebtext_sentiments0* > data/openwebtext_sentiments.7z && \
 		7z x data/openwebtext_sentiments.7z -odata
 

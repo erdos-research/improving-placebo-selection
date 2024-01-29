@@ -1,8 +1,0 @@
-gdown
-gpt-2-simple
-kaleido
-numpy
-Pillow
-plotly
-scipy
-tqdm

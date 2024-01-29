@@ -87,6 +87,7 @@ for sp in seed_phrase_pbar:
 	                                          temperature=0.7,
 	                                          n=100)
 
+	fp = gpt3_5_placebos_dir / f"{sp.replace(' ', '_')}.txt" if sp != "Today, " else gpt3_5_placebos_dir / "Today.txt"
 	with open(gpt3_5_placebos_dir / f"{sp.replace(' ', '_')}.txt", "w") as f:
 		separator = "\n" + "=" * 20 + "\n"
 		placebos = [sp + choice.message.content for choice in response.choices]
